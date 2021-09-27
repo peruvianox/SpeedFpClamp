@@ -5,7 +5,7 @@ UNC Chapel Hill Applied Biomechanics Laboratory
 2021
 
 Run the script to perform data analysis and generate all article figures
-Data avaible at https://drive.google.com/file/d/1PrpgwxUbaDNYojghtbIORW3qLK66NI31/view?usp=sharing
+Data avaible at https://drive.google.com/drive/folders/1-u74AgFj0rZDlK9dtHf0nTUbUMXmFZLc?usp=sharing
 """
 
 import pandas as pd
@@ -20,8 +20,8 @@ import scipy.stats as stats
 import pingouin as pg
 
 # identify folder with data files - RENAME to your folder path!
-folder = r'E:\UNC_ABL\FpMetabolics_2020\MetData'
-
+folder = r'D:\UNC_ABL\FpMetabolics_2020\MetData'
+# folder = r'D:\Fp_Metabolics\MetData'
 files = os.listdir(folder)
 os.chdir(folder)
 sty = 'seaborn'
@@ -445,6 +445,8 @@ for i in matching:
         SpdData['S_Time'] = MAT['NewSpeedTarget'][Cond]['Data'][:]['Time'].tolist()       
         SpdData['S_Fp'] = MAT['NewSpeedTarget'][Cond]['Data'][:]['MeanPeakFp'].tolist()
         
+        # SpdData['S_Time'] = MAT['SpeedTarget'][Cond]['Data'][:]['Time'].tolist()       
+        # SpdData['S_Fp'] = MAT['SpeedTarget'][Cond]['Data'][:]['MeanPeakFp'].tolist()
         
         Data['S_AvgFp'] = MAT['SpeedTarget'][Cond]['FpData']['Mean']
         Data['S_AvgSpd'] = MAT['SpeedTarget'][Cond]['Speed']
@@ -477,8 +479,9 @@ del SpdDataM20, SpdDataM10, SpdDataNorm, SpdDataP10, SpdDataP20
 #%% Sampling Frequency Analysis
 SampFreq = []
 for s in SubjData:
-    t = SubjData[s]['F_Time']
-    SampFreq.append(np.mean(np.diff(t))) 
+    if 'Spd' not in s:
+        t = SubjData[s]['F_Time']
+        SampFreq.append(np.mean(np.diff(t))) 
     
 SamplingMean = np.mean(SampFreq)
 SamplingStd = np.std(SampFreq)
@@ -953,6 +956,7 @@ Full = 1
 MkrSz = 10
 MkrSz2 = 14
 fnt = 15
+X = [1, 2, 3, 4, 5]
 
 fig = plt.figure(figsize=[12,12])
 ax1 = fig.add_subplot(221)
@@ -1036,10 +1040,10 @@ ax2.tick_params(axis='y', labelsize=15)
 # ax2.set_ylim(1.3, 3)
 
 
-ax3.plot(1, 9.2, 'o', color='k', markersize=MkrSz2)
-ax3.plot(1, 8.2, 's', color='k', markersize=MkrSz2)
-ax3.text(1.12, 9.2, ' = Speed Clamp', color='k', fontsize=18, va='center')
-ax3.text(1.12, 8.2, ' = Fp Clamp', color='k', fontsize=18, va='center')
+# ax3.plot(1, 9.2, 'o', color='k', markersize=MkrSz2)
+# ax3.plot(1, 8.2, 's', color='k', markersize=MkrSz2)
+# ax3.text(1.12, 9.2, ' = Speed Clamp', color='k', fontsize=18, va='center')
+# ax3.text(1.12, 8.2, ' = Fp Clamp', color='k', fontsize=18, va='center')
 
 ax3.set_xticks(X)
 ax3.set_xticklabels(Conditions, fontsize=15)
@@ -1158,18 +1162,18 @@ G = np.array([np.ones(20), 2*np.ones(20)]).reshape([40, 1])
 for x in [0, 1, 3, 4]:
     d = np.reshape([AllSpd_S[:,x], AllSpd_S[:,2]], [40, 1])
     D = pd.DataFrame(np.hstack([d,G]), columns=['X','G'])
-    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='eta-square')
+    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='cohen')
     T_SCondSpeed[x] = float(Stats['p-tukey'])
-    ES_SCondSpeed[x] = float(Stats['eta-square'])
+    ES_SCondSpeed[x] = float(Stats['cohen'])
     if T_SCondSpeed[x] < 0.05 :
         ax1.text(x+1-BarOfst, np.mean(AllSpd_S[:,x])+0.18, '*', 
                  c = Colors[x], fontsize=Ast, ha='center')
         
     d = np.reshape([AllSpd_F[:,x], AllSpd_F[:,2]], [40, 1])
     D = pd.DataFrame(np.hstack([d,G]), columns=['X','G'])
-    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='eta-square')
+    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='cohen')
     T_FCondSpeed[x] = float(Stats['p-tukey'])
-    ES_FCondSpeed[x] = float(Stats['eta-square'])
+    ES_FCondSpeed[x] = float(Stats['cohen'])
     if T_FCondSpeed[x] < 0.05 :
         ax1.text(x+1+BarOfst, np.mean(AllSpd_F[:,x])+0.18, '*', 
                  c = Colors[x], fontsize=Ast, ha='center')
@@ -1192,9 +1196,9 @@ ES_Speed = np.ones(5)
 for x in range(5):
     d = np.reshape([AllSpd_S[:,x], AllSpd_F[:,x]], [40, 1])
     D = pd.DataFrame(np.hstack([d,G]), columns=['X','G'])
-    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='eta-square')
+    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='cohen')
     T_Speed[x] = float(Stats['p-tukey'])
-    ES_Speed[x] = float(Stats['eta-square'])
+    ES_Speed[x] = float(Stats['cohen'])
     if T_Speed[x] < 0.05 :
         y = np.mean([np.mean(AllSpd_S[:,x], axis=0), np.mean(AllSpd_F[:,x], axis=0)])
         ax1.text(x+1, y+0.2, '#', 
@@ -1217,18 +1221,18 @@ ES_FCondFp = np.ones(5)
 for x in [0, 1, 3, 4]:
     d = np.reshape([AllFp_S_kg[:,x]*9.81, AllFp_S_kg[:,2]*9.81], [40, 1])
     D = pd.DataFrame(np.hstack([d,G]), columns=['X','G'])
-    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='eta-square')
+    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='cohen')
     T_SCondFp[x] = float(Stats['p-tukey'])
-    ES_SCondFp[x] = float(Stats['eta-square'])
+    ES_SCondFp[x] = float(Stats['cohen'])
     if T_SCondFp[x] < 0.05 :
         ax2.text(x+1-BarOfst, np.mean(AllFp_S_kg[:,x]*9.81)+2.5, '*', 
                  c = Colors[x], fontsize=Ast, ha='center')
 
     d = np.reshape([AllFp_F_kg[:,x]*9.81, AllFp_F_kg[:,2]*9.81], [40, 1]) 
     D = pd.DataFrame(np.hstack([d,G]), columns=['X','G'])
-    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='eta-square')
+    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='cohen')
     T_FCondFp[x] = float(Stats['p-tukey'])
-    ES_FCondFp[x] = float(Stats['eta-square'])
+    ES_FCondFp[x] = float(Stats['cohen'])
     if T_FCondFp[x] < 0.05 :
         ax2.text(x+1+BarOfst, np.mean(AllFp_F_kg[:,x]*9.81, axis=0)+2.5, '*', 
                  c = Colors[x], fontsize=Ast, ha='center')
@@ -1250,9 +1254,9 @@ ES_Fp = np.ones(5)
 for x in range(5):
     d = np.reshape([AllFp_S_kg[:,x]*9.81, AllFp_F_kg[:,x]*9.81], [40, 1])
     D = pd.DataFrame(np.hstack([d,G]), columns=['X','G'])
-    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='eta-square')
+    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='cohen')
     T_Fp[x] = float(Stats['p-tukey'])
-    ES_Fp[x] = float(Stats['eta-square'])
+    ES_Fp[x] = float(Stats['cohen'])
     if T_Fp[x] < 0.05 :
         y = np.mean([np.mean(AllFp_S_kg[:,x]*9.81, axis=0), 
                      np.mean(AllFp_F_kg[:,x]*9.81, axis=0)])
@@ -1274,18 +1278,18 @@ ES_FCondMetCost = np.ones(5)
 for x in range(5): 
     d = np.reshape([WAvg_S[:,x], WAvg_S[:,2]], [40, 1])
     D = pd.DataFrame(np.hstack([d,G]), columns=['X','G'])
-    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='eta-square')
+    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='cohen')
     T_SCondMetCost[x] = float(Stats['p-tukey'])
-    ES_SCondMetCost[x] = float(Stats['eta-square'])
+    ES_SCondMetCost[x] = float(Stats['cohen'])
     if T_SCondMetCost[x] < 0.05 :
         ax3.text(x+1-BarOfst, np.mean(WAvg_S[:,x], axis=0)+1.5,
                  '*', c = Colors[x], fontsize=Ast, ha='center')
     
     d = np.reshape([WAvg_F[:,x], WAvg_F[:,2]], [40, 1]) 
     D = pd.DataFrame(np.hstack([d,G]), columns=['X','G'])
-    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='eta-square')
+    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='cohen')
     T_FCondMetCost[x] = float(Stats['p-tukey'])
-    ES_FCondMetCost[x] = float(Stats['eta-square'])
+    ES_FCondMetCost[x] = float(Stats['cohen'])
     if T_FCondMetCost[x] < 0.05 :
         ax3.text(x+1+BarOfst, np.mean(WAvg_F[:,x], axis=0)+1.5, 
                  '*', c = Colors[x], fontsize=Ast, ha='center')
@@ -1310,9 +1314,9 @@ ES_MetCost = np.ones(5)
 for x in range(5):
     d = np.reshape([WAvg_S[:,x], WAvg_F[:,x]], [40, 1])    
     D = pd.DataFrame(np.hstack([d,G]), columns=['X','G'])
-    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='eta-square')
+    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='cohen')
     T_MetCost[x] = float(Stats['p-tukey'])
-    ES_MetCost[x] = float(Stats['eta-square'])
+    ES_MetCost[x] = float(Stats['cohen'])
     if T_MetCost[x] < 0.05 :
         y = np.mean([np.mean(WAvg_S[:,x], axis=0), 
                      np.mean(WAvg_F[:,x], axis=0)])
@@ -1336,18 +1340,18 @@ ES_FCondCoT = np.ones(5)
 for x in range(5):
     d = np.reshape([CoT_Fp_S[:,x], CoT_Fp_S[:,2]], [40, 1]) 
     D = pd.DataFrame(np.hstack([d,G]), columns=['X','G'])
-    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='eta-square')
+    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='cohen')
     T_SCondCoT[x] = float(Stats['p-tukey'])
-    ES_SCondCoT[x] = float(Stats['eta-square'])
+    ES_SCondCoT[x] = float(Stats['cohen'])
     if T_SCondCoT[x] < 0.05 :
         ax4.text(x+1-BarOfst, np.mean(CoT_Fp_S[:,x], axis=0)+1,
                  '*', c = Colors[x], fontsize=Ast, ha='center')
     
     d = np.reshape([CoT_Fp_F[:,x], CoT_Fp_F[:,2]], [40, 1]) 
     D = pd.DataFrame(np.hstack([d,G]), columns=['X','G'])
-    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='eta-square')
+    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='cohen')
     T_FCondCoT[x] = float(Stats['p-tukey'])
-    ES_FCondCoT[x] = float(Stats['eta-square'])
+    ES_FCondCoT[x] = float(Stats['cohen'])
     if T_FCondCoT[x] < 0.05 :
         ax4.text(x+1+BarOfst, np.mean(CoT_Fp_F[:,x], axis=0)+1, 
                  '*', c = Colors[x], fontsize=Ast, ha='center')
@@ -1369,9 +1373,9 @@ ES_CoT = np.ones(5)
 for x in range(5):
     d = np.reshape([CoT_Fp_S[:,x], CoT_Fp_F[:,x]], [40, 1])
     D = pd.DataFrame(np.hstack([d,G]), columns=['X','G'])
-    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='eta-square')
+    Stats = pg.pairwise_tukey(D, dv='X', between='G', effsize='cohen')
     T_CoT[x] = float(Stats['p-tukey'])
-    ES_CoT[x] = float(Stats['eta-square'])
+    ES_CoT[x] = float(Stats['cohen'])
     if T_CoT[x] < 0.05 :
         y = np.mean([np.mean(CoT_Fp_S[:,x], axis=0), 
                      np.mean(CoT_Fp_F[:,x], axis=0)])
@@ -1388,6 +1392,24 @@ print(' ')
 
 plt.savefig('Clamps.png', dpi=300)
 plt.savefig('Clamps.pdf', dpi=300)
+
+#%% quantify differences between clamp types
+Fd = np.zeros(5)
+Sd = np.zeros(5)
+NMPd = np.zeros(5)
+CoTd = np.zeros(5)
+for x in range(5):
+    Sd[x] = abs(np.mean(AllSpd_S[:,x]) - np.mean(AllSpd_F[:,x])) / (0.5 * (np.mean(AllSpd_S[:,x]) + np.mean(AllSpd_F[:,x])))
+    Fd[x] = abs(np.mean(AllFp_S_kg[:,x]) - np.mean(AllFp_F_kg[:,x])) / (0.5 * (np.mean(AllFp_S_kg[:,x]) + np.mean(AllFp_F_kg[:,x])))             
+    NMPd[x] = abs(np.mean(WAvg_S[:,x]) - np.mean(WAvg_F[:,x])) / (0.5 * (np.mean(WAvg_S[:,x]) + np.mean(WAvg_F[:,x])))
+    CoTd[x] = abs(np.mean(CoT_Fp_S[:,x]) - np.mean(CoT_Fp_F[:,x])) / (0.5 * (np.mean(CoT_Fp_S[:,x]) + np.mean(CoT_Fp_F[:,x])))                 
+
+print('Mean Difference for walking speed = ' + str(np.mean(Sd)))
+print('Mean Difference for Fp = ' + str(np.mean(Fd)))
+print('Mean Difference for net matabolic power = ' + str(np.mean(NMPd)))
+print('Mean Difference for CoT = ' + str(np.mean(CoTd)))
+
+raise StopIteration
 
 #%% Correlation Plot
 plt.close('all')
